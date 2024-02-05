@@ -5,7 +5,7 @@
  */
 const Loader = () => {
   return (
-    <div className='container text-6xl sm:text-8xl font-bold text-quad-yellow mb-8 mt-8 fade-enter-active'>
+    <div className='container text-6xl sm:text-8xl font-bold text-quad-yellow mb-8 mt-8'>
       <div className='cube'>
         <div className='cube__inner'></div>
       </div>

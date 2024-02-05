@@ -59,7 +59,6 @@ body {
 }
 
 // Background
-
 @keyframes rotate-continuous {
   from {
     transform: translate(-50%, -50%) rotate(0deg);
@@ -95,28 +94,9 @@ body {
   animation: rotate-continuous 20s linear infinite;
 }
 
-// Loader transition
-.fade-enter {
-  opacity: 0;
-  transition: opacity 500ms ease-in;
-}
-
-.fade-enter-active {
-  opacity: 1;
-}
-
-.fade-exit {
-  opacity: 1;
-  transition: opacity 500ms ease-in;
-}
-
-.fade-exit-active {
-  opacity: 0;
-}
-
 // Loader
 .container {
-  --uib-size: 55px;
+  --uib-size: 54px;
   --uib-color: #F0BA3F;
   --uib-speed: 1.75s;
   display: flex;

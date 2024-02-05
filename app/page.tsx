@@ -26,7 +26,7 @@ const Quacker = () => {
         setLoading(false);
       } catch (error) {
         toast('ERROR: Failed to load count');
-        setLoading(false); // Ensure loading is set to false even on error
+        setLoading(false);
       }
     })();
   }, []);
@@ -86,11 +86,12 @@ const Quacker = () => {
 
   const handleRefresh = (): void => {
     try {
-      toast('Success! Count updated.');
       fetchCount();
+      window.location.reload();
     } catch (error) {
       toast('ERROR: Failed to fetch count from server');
     }
+    toast('Success! Count updated.');
   };
 
   const handleClearConfirm = (): void => {
