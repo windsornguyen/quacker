@@ -1,3 +1,8 @@
+/*--------------------------------------------------------------------*/
+/* Quacker (Quad + Tracker)                                           */
+/* Author: Windsor Nguyen '25                                         */
+/*--------------------------------------------------------------------*/
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -10,49 +15,144 @@ import Loader from './components/loader/page';
 /**
  * Quacker component for managing and displaying the number of people in Quad.
  *
- * @return {JSX.Element} The Quacker component
+ * @return {JSX.Element} The Quacker (Quad + Tracker) component.
  */
 const Quacker = () => {
-  const [count, setCount] = useState<number>(0);
-  const [loading, setLoading] = useState(true);
-  const [open, setOpen] = useState<boolean>(false);
-  const MAX_CAPACITY: number = 250;
+  const [count, setCount] = useState<number>(0);    // Current count in Quad.
+  const [loading, setLoading] = useState(true);     // Loading animation state.
+  const [open, setOpen] = useState<boolean>(false); // Confirmation dialog state.
+  const MAX_CAPACITY: number = 250;                 // Maximum capacity of Quad.
 
+  const capacityMeterStyle = {
+    width: `${(count / MAX_CAPACITY) * 100}%`,
+  };
+
+  // Load count from KV store on initial render.
   useEffect(() => {
     (async () => {
       try {
-        const currentCount: string | null | undefined = await kv.get('count');
-        setCount(currentCount ? parseInt(currentCount, 10) : 0);
-        setLoading(false);
+        const currentCount: number | null = await kv.get('count');
+        if (currentCount !== null) {
+          setCount(currentCount);
+        } else {
+          setCount(count);
+          toast('ERROR: Current count is not a valid number');
+        }
       } catch (error) {
         toast('ERROR: Failed to load count');
-        setLoading(false);
       }
+      setLoading(false);
     })();
-  }, []);
+  });
 
-  const updateCount = async (newCount: number) => {
+  /**
+   * Getter method to fetch the latest count.
+   *
+   * @return {Promise<number | undefined>} The latest count or void if there was an error.
+   */
+  const fetchCount = async (): Promise<number | undefined> => {
     try {
-      await kv.set('count', newCount.toString());
+      const currentCount: number | null = await kv.get('count');
+      if (currentCount !== null) {
+        return currentCount;
+      } else {
+        toast('ERROR: Current count is not a valid number');
+      }
+    } catch (error) {
+      toast('ERROR: Failed to fetch the latest count');
+    }
+  };
+
+  /**
+   * Updates the count in the key-value store and sets the new count in the component state.
+   *
+   * @param {number} newCount - The new count to be stored.
+   * @return {Promise<void>} - A promise that resolves when the count is updated.
+   */
+  const updateCount = async (newCount: number): Promise<void> => {
+    try {
+      await kv.set('count', newCount);
       setCount(newCount);
     } catch (error) {
-      toast('ERROR: Failed to update count');
+      toast('ERROR: Failed to update the count');
     }
   };
 
-  const fetchCount = async () => {
+  /**
+   * A function that handles the click event for incrementing or decrementing
+   * the count and displaying the corresponding toast message.
+   *
+   * @param {'increment' | 'decrement'} type - The type of action to perform.
+   * @param {number} value - The value to increment or decrement by.
+   * @return {Promise<void>} - A Promise that resolves when the function is complete.
+   */
+  const handleClick = async (type: 'increment' | 'decrement', value: number) => {
     try {
-      const currentCount = await kv.get('count');
-      if (currentCount === null) {
-        await updateCount(0);
-      } else if (typeof currentCount === 'string') {
-        setCount(parseInt(currentCount, 10));
+      const currentCount: number | void = await fetchCount();
+      if (typeof currentCount === 'number') {
+        const newValue =
+          type === 'increment' ? currentCount + value : Math.max(currentCount - value, 0);
+        await updateCount(newValue);
+        toast(
+          `${type === 'increment' ? 'Increased' : 'Decreased'} number of people by ${value}, with ${newValue} people currently in Quad.`
+        );
       }
     } catch (error) {
-      toast('ERROR: Failed to fetch count from server');
+      toast('ERROR: Action failed. Consult Windsor!');
     }
   };
 
+  /**
+   * Handles opening the clear confirmation dialog.
+   *
+   */
+  const handleOpenClearConfirm = () => {
+    setOpen(true);
+  };
+
+  /**
+   * Handles opening the clear confirmation dialog.
+   *
+   */
+  const handleCloseClearConfirm = () => {
+    setOpen(false);
+  };
+
+  /**
+   * Handle the confirmation for clearing the count.
+   *
+   * @return {Promise<void>} - A promise that resolves when the operation is complete.
+   */
+  const handleClearConfirm = async (): Promise<void> => {
+    updateCount(0);
+    toast('Count reset to 0!');
+    handleCloseClearConfirm();
+  };
+
+  /**
+   * Handles the refresh operation.
+   *
+   * @return {Promise<void>} - A promise that resolves when the operation is complete.
+   */
+  const handleRefresh = async (): Promise<void> => {
+    try {
+      const currentCount: number | undefined = await fetchCount();
+      if (typeof currentCount === 'number') {
+        setCount(currentCount);
+        toast('Success! Count updated.');
+      } else {
+        toast('ERROR: Current count is not a valid number');
+      }
+    } catch (error) {
+      toast('ERROR: Failed to refresh. Consult Windsor!');
+    }
+  };
+
+  /**
+   * Fetches the color of the meter based on the current count and the maximum capacity.
+   *
+   * @return {Promise<string>} - The color class for the meter based on the percentage.
+   */
   const getMeterColor = (): string => {
     const percentage: number = count / MAX_CAPACITY;
     if (percentage < 0.5) {
@@ -62,41 +162,6 @@ const Quacker = () => {
       return 'bg-yellow-600';
     }
     return 'bg-red-600';
-  };
-
-  const capacityMeterStyle = {
-    width: `${(count / MAX_CAPACITY) * 100}%`,
-  };
-
-  const handleClick = (type: 'increment' | 'decrement', value: number): void => {
-    const newValue: number = type === 'increment' ? count + value : Math.max(count - value, 0);
-    updateCount(newValue);
-    toast(
-      `${type === 'increment' ? 'Increased' : 'Decreased'} number of people by ${value}, with ${newValue} people currently in Quad.`
-    );
-  };
-
-  const handleOpenClearConfirm = (): void => {
-    setOpen(true);
-  };
-
-  const handleClose = (): void => {
-    setOpen(false);
-  };
-
-  const handleRefresh = (): void => {
-    try {
-      fetchCount();
-      window.location.reload();
-    } catch (error) {
-      toast('ERROR: Failed to fetch count from server');
-    }
-    toast('Success! Count updated.');
-  };
-
-  const handleClearConfirm = (): void => {
-    updateCount(0);
-    handleClose();
   };
 
   return (
@@ -111,12 +176,14 @@ const Quacker = () => {
         />
       </div>
 
-      <Toaster />
-      <div className='text-xl sm:text-2xl md:text-3xl font-bold text-black dark:text-quad-yellow rounded-md text-center px-2 mb-8'>
+      <Toaster className='text-center' />
+      <div className='text-xl sm:text-2xl md:text-3xl font-bold text-black dark:text-quad-yellow rounded-md text-center px-2 m-8'>
         Number of people currently in Quad
       </div>
       <div className='w-full max-w-xs sm:max-w-sm flex flex-col items-center justify-center p-4 sm:p-5 m-4 sm:m-5 bg-quad-blue rounded-lg mb-12'>
-        <h2 className='text-6xl sm:text-8xl font-bold text-quad-yellow mb-8 mt-8'>
+        <h2
+          className={`text-6xl sm:text-8xl font-bold text-quad-yellow mb-8 mt-8 ${loading ? '' : 'fade-in'}`}
+        >
           {loading ? <Loader /> : count}
         </h2>
         <div className='w-full bg-gray-200 h-2 rounded-full overflow-hidden mb-10'>
@@ -169,7 +236,7 @@ const Quacker = () => {
         <div>
           <div
             className='modal-backdrop fixed inset-0 backdrop-blur-sm bg-black bg-opacity-30 z-50'
-            onClick={handleClose}
+            onClick={handleCloseClearConfirm}
           ></div>
           <div className='modal-entrance fixed inset-0 flex justify-center items-center z-50'>
             <div
@@ -188,7 +255,7 @@ const Quacker = () => {
                 </button>
                 <button
                   className='bg-quad-blue text-gray-200 rounded px-4 py-2'
-                  onClick={handleClose}
+                  onClick={handleCloseClearConfirm}
                 >
                   Cancel
                 </button>
