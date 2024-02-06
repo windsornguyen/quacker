@@ -94,7 +94,8 @@ const Quacker = () => {
           type === 'increment' ? currentCount + value : Math.max(currentCount - value, 0);
         await updateCount(newValue);
         toast(
-          `${type === 'increment' ? 'Increased' : 'Decreased'} number of people by ${value}, with ${newValue} people currently in Quad.`
+          `${type === 'increment' ? 'Increased' : 'Decreased'} number of people by ${value}, with ${newValue} people currently in Quad.`,
+          { position: 'top-center' }
         );
       }
     } catch (error) {
@@ -125,7 +126,7 @@ const Quacker = () => {
    */
   const handleClearConfirm = async (): Promise<void> => {
     updateCount(0);
-    toast('Count reset to 0!');
+    toast('Count reset to 0!', { position: 'top-center' });
     handleCloseClearConfirm();
   };
 
@@ -139,7 +140,7 @@ const Quacker = () => {
       const currentCount: number | undefined = await fetchCount();
       if (typeof currentCount === 'number') {
         setCount(currentCount);
-        toast('Success! Count updated.');
+        toast('Success! Count updated.', { position: 'top-center' });
       } else {
         toast('ERROR: Current count is not a valid number');
       }
@@ -176,7 +177,7 @@ const Quacker = () => {
         />
       </div>
 
-      <Toaster className='text-center' />
+      <Toaster className='center-toast text-center' />
       <div className='text-xl sm:text-2xl md:text-3xl font-bold text-black dark:text-quad-yellow rounded-md text-center px-2 m-8'>
         Number of people currently in Quad
       </div>
