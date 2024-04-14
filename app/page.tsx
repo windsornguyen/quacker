@@ -18,10 +18,10 @@ import Loader from './components/loader/page';
  * @return {JSX.Element} The Quacker (Quad + Tracker) component.
  */
 const Quacker = () => {
-  const [count, setCount] = useState<number>(0);    // Current count in Quad.
-  const [loading, setLoading] = useState(true);     // Loading animation state.
+  const [count, setCount] = useState<number>(0); // Current count in Quad.
+  const [loading, setLoading] = useState(true); // Loading animation state.
   const [open, setOpen] = useState<boolean>(false); // Confirmation dialog state.
-  const MAX_CAPACITY: number = 350;                 // Maximum capacity of Quad.
+  const MAX_CAPACITY: number = 350; // Maximum capacity of Quad.
 
   const capacityMeterStyle = {
     width: `${(count / MAX_CAPACITY) * 100}%`,
