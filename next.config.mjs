@@ -12,9 +12,6 @@ const nextConfig = {
 		devtoolSegmentExplorer: true,
 	},
   reactStrictMode: true,
-  sassOptions: {
-    includePaths: [path.join(__dirname, 'styles')],
-  },
   ...withPWA({
     dest: 'public',
     register: true,

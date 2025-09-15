@@ -6,8 +6,10 @@
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
+}
 
-  @media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: dark) {
+  :root {
     --foreground-rgb: 255, 255, 255;
     --background-start-rgb: 0, 0, 0;
     --background-end-rgb: 0, 0, 0;
@@ -30,11 +32,11 @@ body {
 .modal-entrance {
   opacity: 0;
   animation: fadeIn 0.4s ease forwards;
+}
 
-  &.modal-entrance {
-    transform: scale(0.95);
-    animation-name: modalEntrance;
-  }
+.modal-entrance {
+  transform: scale(0.95);
+  animation-name: modalEntrance;
 }
 
 @keyframes fadeIn {
@@ -52,13 +54,13 @@ body {
 
 .glow-on-hover {
   transition: box-shadow 0.3s ease-in-out;
-
-  &:hover {
-    box-shadow: 0 0 15px rgb(240, 186, 63);
-  }
 }
 
-// Background
+.glow-on-hover:hover {
+  box-shadow: 0 0 15px rgb(240, 186, 63);
+}
+
+/* Background */
 @keyframes rotate-continuous {
   from {
     transform: translate(-50%, -50%) rotate(0deg);
@@ -94,7 +96,7 @@ body {
   animation: rotate-continuous 20s linear infinite;
 }
 
-// Loader
+/* Loader */
 .container {
   --uib-size: 54px;
   --uib-color: #F0BA3F;
@@ -127,17 +129,18 @@ body {
 
 .cube:nth-child(2) {
   animation-delay: calc(var(--uib-speed) * -0.36);
-
-  .cube__inner {
-    animation-delay: calc(var(--uib-speed) * -0.36);
-  }
 }
+
+.cube:nth-child(2) .cube__inner {
+  animation-delay: calc(var(--uib-speed) * -0.36);
+}
+
 .cube:nth-child(3) {
   animation-delay: calc(var(--uib-speed) * -0.2);
+}
 
-  .cube__inner {
-    animation-delay: calc(var(--uib-speed) * -0.2);
-  }
+.cube:nth-child(3) .cube__inner {
+  animation-delay: calc(var(--uib-speed) * -0.2);
 }
 
 @keyframes jump {
@@ -196,12 +199,7 @@ body {
   }
 }
 
-// Fade-in animation for the count
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
+/* Fade-in animation for the count */
 .fade-in {
   animation: fadeIn 1.5s ease-out;
 }
