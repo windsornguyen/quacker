@@ -5,9 +5,8 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 
-import { kv } from '@vercel/kv';
 import { Toaster, toast } from 'sonner';
 
 import Loader from './components/loader/page';
@@ -27,56 +26,49 @@ const Quacker = () => {
     width: `${(count / MAX_CAPACITY) * 100}%`,
   };
 
-  // Load count from KV store on initial render.
+  // Load count from API on initial render.
   useEffect(() => {
     (async () => {
       try {
-        const currentCount: number | null = await kv.get('count');
-        if (currentCount !== null) {
-          setCount(currentCount);
+        const response = await fetch('/api/count');
+        const data = await response.json();
+        if (response.ok) {
+          setCount(data.count ?? 0);
         } else {
-          setCount(count);
-          toast('ERROR: Current count is not a valid number');
+          toast(`ERROR: ${data.error || 'Failed to load count'}`);
         }
-      } catch (error) {
-        toast('ERROR: Failed to load count');
+      } catch (err) {
+        toast(
+          `ERROR: Network error - ${err instanceof Error ? err.message : 'Failed to load count'}`
+        );
       }
       setLoading(false);
     })();
-  });
+  }, []);
 
   /**
    * Getter method to fetch the latest count.
    *
    * @return {Promise<number | undefined>} The latest count or void if there was an error.
    */
-  const fetchCount = async (): Promise<number | undefined> => {
+  const fetchCount = useCallback(async (): Promise<number | undefined> => {
     try {
-      const currentCount: number | null = await kv.get('count');
-      if (currentCount !== null) {
-        return currentCount;
+      const response = await fetch('/api/count');
+      const data = await response.json();
+      if (response.ok) {
+        const newCount = data.count ?? 0;
+        setCount(newCount);
+        return newCount;
       } else {
-        toast('ERROR: Current count is not a valid number');
+        toast(`ERROR: ${data.error || 'Failed to fetch count'}`);
       }
-    } catch (error) {
-      toast('ERROR: Failed to fetch the latest count');
+    } catch (err) {
+      toast(
+        `ERROR: Network error - ${err instanceof Error ? err.message : 'Failed to fetch the latest count'}`
+      );
     }
-  };
+  }, []);
 
-  /**
-   * Updates the count in the key-value store and sets the new count in the component state.
-   *
-   * @param {number} newCount - The new count to be stored.
-   * @return {Promise<void>} - A promise that resolves when the count is updated.
-   */
-  const updateCount = async (newCount: number): Promise<void> => {
-    try {
-      await kv.set('count', newCount);
-      setCount(newCount);
-    } catch (error) {
-      toast('ERROR: Failed to update the count');
-    }
-  };
 
   /**
    * A function that handles the click event for incrementing or decrementing
@@ -88,18 +80,30 @@ const Quacker = () => {
    */
   const handleClick = async (type: 'increment' | 'decrement', value: number) => {
     try {
-      const currentCount: number | void = await fetchCount();
-      if (typeof currentCount === 'number') {
-        const newValue =
-          type === 'increment' ? currentCount + value : Math.max(currentCount - value, 0);
-        await updateCount(newValue);
+      const endpoint = type === 'increment' ? '/api/count/increment' : '/api/count/decrement';
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setCount(data.count);
         toast(
-          `${type === 'increment' ? 'Increased' : 'Decreased'} number of people by ${value}, with ${newValue} people currently in Quad.`,
+          `${type === 'increment' ? 'Increased' : 'Decreased'} number of people by ${value}. There are now ${data.count} people currently in Quad.`,
           { position: 'top-center' }
         );
+      } else {
+        toast(`ERROR: ${data.error || 'Action failed. Consult Windsor Nguyen!'}`, {
+          position: 'top-center',
+        });
       }
-    } catch (error) {
-      toast('ERROR: Action failed. Consult Windsor!');
+    } catch (err) {
+      toast(
+        `ERROR: Network error - ${err instanceof Error ? err.message : 'Action failed. Consult Windsor Nguyen!'}`,
+        { position: 'top-center' }
+      );
     }
   };
 
@@ -125,8 +129,24 @@ const Quacker = () => {
    * @return {Promise<void>} - A promise that resolves when the operation is complete.
    */
   const handleClearConfirm = async (): Promise<void> => {
-    updateCount(0);
-    toast('Count reset to 0!', { position: 'top-center' });
+    try {
+      const response = await fetch('/api/count/reset', {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setCount(0);
+        toast('Count reset to 0!', { position: 'top-center' });
+      } else {
+        toast(`ERROR: ${data.error || 'Failed to reset count'}`, { position: 'top-center' });
+      }
+    } catch (err) {
+      toast(
+        `ERROR: Network error - ${err instanceof Error ? err.message : 'Failed to reset count'}`,
+        { position: 'top-center' }
+      );
+    }
     handleCloseClearConfirm();
   };
 
@@ -136,16 +156,9 @@ const Quacker = () => {
    * @return {Promise<void>} - A promise that resolves when the operation is complete.
    */
   const handleRefresh = async (): Promise<void> => {
-    try {
-      const currentCount: number | undefined = await fetchCount();
-      if (typeof currentCount === 'number') {
-        setCount(currentCount);
-        toast('Success! Count updated.', { position: 'top-center' });
-      } else {
-        toast('ERROR: Current count is not a valid number');
-      }
-    } catch (error) {
-      toast('ERROR: Failed to refresh. Consult Windsor!');
+    const currentCount = await fetchCount();
+    if (typeof currentCount === 'number') {
+      toast('Success! Count updated.', { position: 'top-center' });
     }
   };
 
