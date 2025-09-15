@@ -69,7 +69,6 @@ const Quacker = () => {
     }
   }, []);
 
-
   /**
    * A function that handles the click event for incrementing or decrementing
    * the count and displaying the corresponding toast message.

@@ -5,13 +5,15 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig = {
+  outputFileTracingRoot: path.join(__dirname),
+	experimental: {
+		reactCompiler: true,
+		browserDebugInfoInTerminal: true,
+		devtoolSegmentExplorer: true,
+	},
   reactStrictMode: true,
   sassOptions: {
     includePaths: [path.join(__dirname, 'styles')],
-  },
-  env: {
-    KV_REST_API_URL: process.env.KV_REST_API_URL,
-    KV_REST_API_TOKEN: process.env.KV_REST_API_TOKEN,
   },
   ...withPWA({
     dest: 'public',
